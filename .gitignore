@@ -1,0 +1,15 @@
+# Rust
+/target
+**/*.rs.bk
+
+# Elisp
+*.elc
+.cask
+
+# Emacs backup file
+.\#*
+\#*
+*~
+
+# Binary
+*.so
