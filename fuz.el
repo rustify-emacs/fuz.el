@@ -14,7 +14,7 @@
 (defun fuz-fuzzy-match-skim (pattern str)
   "
 
-Sign: (-> Str Str (Listof Long))"
+Sign: (-> Str Str (Option (Listof Long)))"
   (if-let* ((total-score (fuz-core-calc-score-skim pattern str)))
       (cons total-score (fuz-core-find-indices-skim pattern str))
     nil))

@@ -32,15 +32,11 @@
 (require 'cl-lib)
 (require 'fuz)
 (require 'helm)
+(require 'helm-command)
 
 (eval-when-compile
   (require 'pcase)
   (require 'subr-x))
-
-(defvar helm-M-x-default-sort-fn)
-
-(declare-function helm-M-x-fuzzy-sort-candidates "ext:helm-command.el")
-(declare-function helm-buffer--match-pattern "ext:helm-buffers.el")
 
 ;;; Type Alias
 
@@ -192,7 +188,7 @@ Sign: (-> (Listof Cand) Any (Listof Cand))"
 
 
 
-(defun helm-fuz-M-x-fuzzy-sort-fn! (cands source)
+(defun helm-fuz-M-x-fuzzy-sort-fn! (cands _source)
   "Sorting function for `helm-M-x'
 
 Sign: (-> (Listof Cand) Any (Listof Cand))"
@@ -277,7 +273,7 @@ Sign: (-> (-> (Listof Cand) Any (Listof Cand)) (Listof Cand) Any (Listof Cand))"
 
 (defvar helm-fuz--fuzzy-regex-cache (make-hash-table :test #'equal))
 (defun helm-fuz--build-fuzzy-regex (pattern)
-  "
+  "Build fuzzy regexp of PATTERN.
 
 Sign: (-> Str (Cons Str Str))"
   (or (gethash pattern helm-fuz--fuzzy-regex-cache)
@@ -287,9 +283,12 @@ Sign: (-> Str (Cons Str Str))"
         re)))
 
 (defun helm-fuz--parse-mm-pattern (pattern)
-  "
+  "Parse skim's style multimatch PATTERN.
 
-Sign: (-> Str (U (Cons 'fuzzy (Cons Str Str)) (Cons 'inverse Str) Str))"
+Sign: (-> Str (U (Cons 'fuzzy (Cons Str Str)) (Cons 'inverse Str) Str))
+
+Return value can be a regexp built from pattern , or (TYPE . REGEXP) to specify
+match rule on pattern."
   (cond ((string-prefix-p "!" pattern)
          (cons 'inverse (regexp-quote (substring pattern 1))))
         ((string-prefix-p "^" pattern)
@@ -324,7 +323,7 @@ Sign: (-> Str &rest (Listof Any) Bool)"
   (let* ((parsed-pats (mapcar #'helm-fuz--parse-mm-pattern
                               (helm-mm-split-pattern pattern)))
          (pred (lambda (it) (eq (car-safe it) 'inverse)))
-         (inverse-pats (mapcar #'cdr (cl-remove-if-not pred parsed-pats)))
+         (inverse-regexps (mapcar #'cdr (cl-remove-if-not pred parsed-pats)))
          (other-pats (cl-remove-if pred parsed-pats)))
     (cl-labels ((search-pat (pat bound quick?)
                   (pcase pat
@@ -337,11 +336,11 @@ Sign: (-> Str &rest (Listof Any) Bool)"
                 (precise-match (pat bol eol)
                   (goto-char bol)
                   (search-pat pat eol nil)))
-      (when (cl-some (lambda (it) (rough-match it)) other-pats)
+      (when (cl-some #'rough-match other-pats)
         (let* ((bol (point-at-bol))
                (eol (point-at-eol))
                (pred (lambda (it) (precise-match it bol eol))))
-          (prog1 (if (cl-some pred inverse-pats)
+          (prog1 (if (cl-some pred inverse-regexps)
                      nil
                    (cl-every pred other-pats))
             (goto-char eol)))))))
