@@ -30,6 +30,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'inline)
 (require 'fuz)
 (require 'helm)
 (require 'helm-command)
@@ -74,30 +75,33 @@ You can use some control character to control the matching method of helm"
 
 ;;; Utils
 
-(defun helm-fuz--fuzzy-indices (pattern str)
+(define-inline helm-fuz--fuzzy-indices (pattern str)
   "Return all char positions where STR fuzzy matched with PATTERN.
 
 Sign: (-> Str Str (Option (Listof Long)))"
-  (cl-ecase helm-fuz-sorting-method
-    (clangd (fuz-find-indices-clangd pattern str))
-    (skim (fuz-find-indices-skim pattern str))))
+  (inline-quote
+   (pcase-exhaustive helm-fuz-sorting-method
+     (`clangd (fuz-find-indices-clangd ,pattern ,str))
+     (`skim (fuz-find-indices-skim ,pattern ,str)))))
 
-(defun helm-fuz--fuzzy-score (pattern str)
+(define-inline helm-fuz--fuzzy-score (pattern str)
   "Calc the fuzzy match score of STR with PATTERN.
 
 Sign: (-> Str Str Long)"
-  (or (cl-ecase helm-fuz-sorting-method
-        (clangd (fuz-calc-score-clangd pattern str))
-        (skim (fuz-calc-score-skim pattern str)))
-      most-negative-fixnum))
+  (inline-quote
+   (or (pcase-exhaustive helm-fuz-sorting-method
+         (`clangd (fuz-calc-score-clangd ,pattern ,str))
+         (`skim (fuz-calc-score-skim ,pattern ,str)))
+       most-negative-fixnum)))
 
-(defun helm-fuz--fuzzy-match (pattern str)
+(define-inline helm-fuz--fuzzy-match (pattern str)
   "Return the fuzzy match result of STR with PATTERN.
 
 Sign: (-> Str Str (Option (Listof Long)))"
-  (cl-ecase helm-fuz-sorting-method
-    (clangd (fuz-fuzzy-match-clangd pattern str))
-    (skim (fuz-fuzzy-match-skim pattern str))))
+  (inline-quote
+   (pcase-exhaustive helm-fuz-sorting-method
+     (`clangd (fuz-fuzzy-match-clangd ,pattern ,str))
+     (`skim (fuz-fuzzy-match-skim ,pattern ,str)))))
 
 (defun helm-fuz--get-cand-str (cand &optional use-real? basename?)
   "Return the real string of CAND.
@@ -113,16 +117,23 @@ If BASENAME?, use `helm-basename' to transfrom PATTERN."
           (basename? (helm-basename cand))
           (t cand))))
 
-(defsubst helm-fuz--get-single-cand-score-data (pattern cand
-                                                &optional
-                                                  use-real? basename?)
-  "Return (LENGTH SCORE)  by matching CAND with PATTERN.
+(defun helm-fuz--get-single-cand-score-data (pattern cand
+                                             &optional
+                                               use-real? basename?)
+  "Return (LENGTH SCORE) by matching CAND with PATTERN.
 
-Sign: (->* (Str Cand) (Bool Bool) (List Long Long))"
-  (let* ((realstr (helm-fuz--get-cand-str cand use-real? basename?)))
-    ;; (message "%s" (helm-fuz--fuzzy-score pattern realstr))
-    (list (length realstr)
-          (helm-fuz--fuzzy-score pattern realstr))))
+Sign: (->* (Str Cand) (Bool Bool) (List Long Long))
+
+USE-REAL? and BASENAME? will be passed to `helm-fuz--get-cand-str' to get the
+real candidate string."
+  (let* ((realstr (helm-fuz--get-cand-str cand use-real? basename?))
+         (len (length realstr)))
+    ;; Short pattern may have higher score when matching longer pattern
+    ;; than exactly match itself
+    ;; e.g. "ielm" will prefer [iel]m-[m]enu than [ielm]
+    (if (string= realstr pattern)
+        (list len most-positive-fixnum)
+      (list len (helm-fuz--fuzzy-score pattern realstr)))))
 
 (defun helm-fuz--fuzzify-multimatch-get-score-data (pattern cand
                                                     &optional
@@ -143,11 +154,13 @@ Sign: (->* (Str Cand) (Bool Bool) (List Long Long))"
           (car (fuz-logand-compose-match #'helm-fuz--fuzzy-match raw-pats cand)))))
 
 
-(defun helm-fuz-fuzzy-matching-sort-fn-1 (pattern
-                                          cands
-                                          data-fn
-                                          &optional
-                                            preserve-tie-order?)
+
+
+(defun helm-fuz-fuzzy-matching-sort-fn-1! (pattern
+                                           cands
+                                           data-fn
+                                           &optional
+                                             preserve-tie-order?)
   "Main helper of helm sorting functions.
 
 Sign: (->* (Str (Listof Cand) (-> Str Cand (List Long Long)))
@@ -159,13 +172,18 @@ matching data, then sort CANDS with those data. If PRESERVE-TIE-ORDER? is nil,
 tie in scores are sorted by length of the candidates."
   (if (string= pattern "")
       cands
-    (cl-sort cands
-             (pcase-lambda (`(,len1 ,scr1) `(,len2 ,scr2))
-                 (if (= scr1 scr2)
-                     (when (not preserve-tie-order?)
-                       (< len1 len2))
-                   (> scr1 scr2)))
-             :key (lambda (cand) (funcall data-fn pattern cand)))))
+    (let ((cache (make-hash-table :test #'equal)))
+      ;; No need to use `cl-sort' here,
+      ;; we can perform destructive operation on cands.
+      (fuz-sort-with-key! cands
+                          (pcase-lambda (`(,len1 ,scr1) `(,len2 ,scr2))
+                              (if (= scr1 scr2)
+                                  (when (not preserve-tie-order?)
+                                    (< len1 len2))
+                                (> scr1 scr2)))
+                          (lambda (cand)
+                            (fuz-with-hash-cache-progn cache cand
+                              (funcall data-fn pattern cand)))))))
 
 ;;; Export function
 
@@ -173,15 +191,15 @@ tie in scores are sorted by length of the candidates."
   "Sort the CANDS by scoring it with `helm-pattern'
 
 Sign: (-> (Listof Cand) Any (Listof Cand))"
-  (helm-fuz-fuzzy-matching-sort-fn-1 helm-pattern
-                                     cands
-                                     #'helm-fuz--get-single-cand-score-data))
+  (helm-fuz-fuzzy-matching-sort-fn-1! helm-pattern
+                                      cands
+                                      #'helm-fuz--get-single-cand-score-data))
 
 (defun helm-fuz-fuzzy-matching-sort-fn-preserve-ties-order! (cands _source)
   "Sort the CANDS by scoring it with `helm-pattern', preserve ties order.
 
 Sign: (-> (Listof Cand) Any (Listof Cand))"
-  (helm-fuz-fuzzy-matching-sort-fn-1 helm-pattern
+  (helm-fuz-fuzzy-matching-sort-fn-1! helm-pattern
                                      cands
                                      #'helm-fuz--get-single-cand-score-data
                                      t))
@@ -192,7 +210,7 @@ Sign: (-> (Listof Cand) Any (Listof Cand))"
   "Sorting function for `helm-M-x'
 
 Sign: (-> (Listof Cand) Any (Listof Cand))"
-  (helm-fuz-fuzzy-matching-sort-fn-1 helm-pattern
+  (helm-fuz-fuzzy-matching-sort-fn-1! helm-pattern
                                      cands
                                      (lambda (pat cand)
                                        (helm-fuz--get-single-cand-score-data pat cand t))
@@ -207,9 +225,6 @@ Sign: (-> Cand Cand)"
     (let ((highlighter (lambda (str)
                          (let ((realstr (helm-stringify str)))
                            (fuz-highlighter
-                            ;; (cdr (helm-fuz--multimatch
-                            ;;       (fuz-split-pattern helm-pattern)
-                            ;;       str))
                             (helm-fuz--fuzzy-indices helm-pattern realstr)
                             'helm-match realstr)))))
       (pcase cand
@@ -265,7 +280,7 @@ Sign: (-> (-> (Listof Cand) Any (Listof Cand)) (Listof Cand) Any (Listof Cand))"
         ((string-match-p " " helm-pattern)
          (funcall orig-fun cands source))
         (t
-         (helm-fuz-fuzzy-matching-sort-fn-1 helm-input
+         (helm-fuz-fuzzy-matching-sort-fn-1! helm-input
                                             cands
                                             #'helm-fuz--get-ff-cand-score-data))))
 
@@ -276,11 +291,11 @@ Sign: (-> (-> (Listof Cand) Any (Listof Cand)) (Listof Cand) Any (Listof Cand))"
   "Build fuzzy regexp of PATTERN.
 
 Sign: (-> Str (Cons Str Str))"
-  (or (gethash pattern helm-fuz--fuzzy-regex-cache)
-      (let ((re (cons (helm--mapconcat-pattern (substring pattern 0 1))
-                      (helm--mapconcat-pattern pattern))))
-        (puthash pattern re helm-fuz--fuzzy-regex-cache)
-        re)))
+  (fuz-with-hash-cache-progn
+      helm-fuz--fuzzy-regex-cache
+      pattern
+    (cons (helm--mapconcat-pattern (substring pattern 0 1))
+          (helm--mapconcat-pattern pattern))))
 
 (defun helm-fuz--parse-mm-pattern (pattern)
   "Parse skim's style multimatch PATTERN.
@@ -306,7 +321,6 @@ Sign: (-> Str Str Bool)"
   (let ((patterns (helm-mm-split-pattern pattern t)))
     (cl-every (lambda (it)
                 (let ((pat (helm-fuz--parse-mm-pattern it)))
-                  (message "%S %S" it str)
                   (pcase pat
                     (`(inverse . ,re)
                       (not (string-match-p re str)))
@@ -349,7 +363,7 @@ Sign: (-> Str &rest (Listof Any) Bool)"
 
 ;;;###autoload
 (define-minor-mode helm-fuz-mode
-    "helm-fuz minor mode."
+  "helm-fuz minor mode."
   :init-value nil
   :group 'helm-fuz
   :global t
