@@ -31,6 +31,7 @@
 ;;; Code:
 
 (require 'cl-lib)
+(require 'inline)
 (require 'fuz)
 
 (eval-when-compile
@@ -63,27 +64,24 @@ Sign: (-> (-> Str Str (Listof Long)) (Listof Str) Str (Option (Listof Long)))"
          (cl-return nil))))
     (cons total-score (sort (cl-delete-duplicates all-indices :test #'=) #'<))))
 
-(defsubst fuz-sort-with-key! (list comp-fn key)
+(define-inline fuz-sort-with-key! (list comp-fn key)
   "Sort LIST with COMP-FN, transfrom elem in LIST with KEY before comparison."
-  (sort list (lambda (e1 e2)
-               (funcall comp-fn
-                        (funcall key e1)
-                        (funcall key e2)))))
+  (inline-letevals (key)
+    (inline-quote
+     (sort ,list (lambda (e1 e2)
+                   (funcall ,comp-fn
+                            (funcall ,key e1)
+                            (funcall ,key e2)))))))
 
-(defun fuz-memo-function (fn test)
+(defsubst fuz-memo-function (fn test)
   "Memoize the FN.
 
 Sign: (All (I O) (-> (-> I O) (U 'eq 'eql 'equal) (-> I O)))
 
-TEST can be one of `eq' `equal' `eql', which used to compare the input
-of FN and decide whether to get cached value or not."
-  (let ((cache (make-hash-table :test test))
-        (not-found-sym (make-symbol "not-found")))
+TEST can be one of `eq', `eql', `equal', which used as cache hash's test-fn."
+  (let ((cache (make-hash-table :test test)))
     (lambda (input)
-      (let ((val (gethash input cache not-found-sym)))
-        (if (eq val not-found-sym)
-            (puthash input (funcall fn input) cache)
-          val)))))
+      (gethash input cache (puthash input (funcall fn input) cache)))))
 
 (provide 'fuz-extra)
 
