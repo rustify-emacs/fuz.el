@@ -29,9 +29,9 @@
 
 ;;; Code:
 
-(require 'cl-lib)
 (require 'inline)
 (require 'fuz)
+(require 'fuz-extra)
 (require 'helm)
 (require 'helm-command)
 
