@@ -153,9 +153,6 @@ Sign: (->* (Str Cand) (Bool Bool) (List Long Long))"
     (list (length realstr)
           (car (fuz-logand-compose-match #'helm-fuz--fuzzy-match raw-pats cand)))))
 
-
-
-
 (defun helm-fuz-fuzzy-matching-sort-fn-1! (pattern
                                            cands
                                            data-fn
@@ -172,7 +169,9 @@ matching data, then sort CANDS with those data. If PRESERVE-TIE-ORDER? is nil,
 tie in scores are sorted by length of the candidates."
   (if (string= pattern "")
       cands
-    (let ((cache (make-hash-table :test #'equal)))
+    (let ((memo-data-fn (fuz-memo-function (lambda (cand)
+                                             (funcall data-fn pattern cand))
+                                           #'equal)))
       ;; No need to use `cl-sort' here,
       ;; we can perform destructive operation on cands.
       (fuz-sort-with-key! cands
@@ -181,9 +180,7 @@ tie in scores are sorted by length of the candidates."
                                   (when (not preserve-tie-order?)
                                     (< len1 len2))
                                 (> scr1 scr2)))
-                          (lambda (cand)
-                            (fuz-with-hash-cache-progn cache cand
-                              (funcall data-fn pattern cand)))))))
+                          memo-data-fn))))
 
 ;;; Export function
 
@@ -286,16 +283,21 @@ Sign: (-> (-> (Listof Cand) Any (Listof Cand)) (Listof Cand) Any (Listof Cand))"
 
 ;;; Fuzzify multimatch
 
-(defvar helm-fuz--fuzzy-regex-cache (make-hash-table :test #'equal))
+(defvar helm-fuz--fuzzy-regex-cache nil)
 (defun helm-fuz--build-fuzzy-regex (pattern)
   "Build fuzzy regexp of PATTERN.
 
 Sign: (-> Str (Cons Str Str))"
-  (fuz-with-hash-cache-progn
-      helm-fuz--fuzzy-regex-cache
-      pattern
-    (cons (helm--mapconcat-pattern (substring pattern 0 1))
-          (helm--mapconcat-pattern pattern))))
+  (pcase-let ((`(,old-pat ,old-quick-re . ,old-full-re)
+                helm-fuz--fuzzy-regex-cache))
+    (if (string-prefix-p old-pat pattern)
+        (cons old-quick-re
+              (concat old-full-re
+                      (helm--mapconcat-pattern (substring pattern (length old-pat)))))
+      (let ((re-cons (cons (helm--mapconcat-pattern (substring pattern 0 1))
+                           (helm--mapconcat-pattern pattern))))
+        (setq helm-fuz--fuzzy-regex-cache (cons pattern re-cons))
+        re-cons))))
 
 (defun helm-fuz--parse-mm-pattern (pattern)
   "Parse skim's style multimatch PATTERN.
