@@ -1,4 +1,4 @@
-;;; fuz-extra.el --- Description  -*- lexical-binding: t -*-
+;;; fuz-extra.el --- Extra convenient utils for Fuz  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Zhu Zihao
 
@@ -25,7 +25,8 @@
 
 ;;; Commentary:
 
-;;
+;; This file provided a set of util functions which considered useful
+;; but not the core part of `fuz'.
 
 ;;; Code:
 

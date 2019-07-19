@@ -1,4 +1,4 @@
-;;; helm-fuz.el --- Description  -*- lexical-binding: t -*-
+;;; helm-fuz.el --- Integrate Helm and Fuz -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Zhu Zihao
 
@@ -46,7 +46,7 @@
 ;;; Customize
 
 (defgroup helm-fuz ()
-  "Sort helm candidates by fuz."
+  "Sort `helm' candidates by fuz."
   :group 'convenience
   :prefix "helm-fuz-")
 

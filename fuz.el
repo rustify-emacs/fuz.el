@@ -1,4 +1,4 @@
-;;; fuz.el --- Description  -*- lexical-binding: t -*-
+;;; fuz.el --- Fast and precise fuzzy scoring/matching utils  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Zhu Zihao
 
