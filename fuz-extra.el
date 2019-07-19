@@ -73,15 +73,19 @@ Sign: (-> (-> Str Str (Listof Long)) (Listof Str) Str (Option (Listof Long)))"
                             (funcall ,key e1)
                             (funcall ,key e2)))))))
 
-(defsubst fuz-memo-function (fn test)
+(defun fuz-memo-function (fn test)
   "Memoize the FN.
 
 Sign: (All (I O) (-> (-> I O) (U 'eq 'eql 'equal) (-> I O)))
 
 TEST can be one of `eq', `eql', `equal', which used as cache hash's test-fn."
-  (let ((cache (make-hash-table :test test)))
+  (let ((cache (make-hash-table :test test))
+        (not-found-sym (make-symbol "not-found")))
     (lambda (input)
-      (gethash input cache (puthash input (funcall fn input) cache)))))
+      (let ((val (gethash input cache not-found-sym)))
+        (if (eq val not-found-sym)
+            (puthash input (funcall fn input) cache)
+          val)))))
 
 (provide 'fuz-extra)
 
