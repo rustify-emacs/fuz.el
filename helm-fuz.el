@@ -2,10 +2,10 @@
 
 ;; Copyright (C) 2019 Zhu Zihao
 
-;; Author: Zhu Zihao all_but_last@163.com
+;; Author: Zhu Zihao <all_but_last@163.com>
 ;; URL:
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "25.1") (helm "3.2.0"))
+;; Package-Requires: ((emacs "25.1") (helm "3.2"))
 ;; Keywords: convenience
 
 ;; This file is NOT part of GNU Emacs.
@@ -58,13 +58,6 @@ slower but return better result than clangd's."
   :type '(choice
           (const :tag "Skim" skim)
           (const :tag "Clangd" clangd))
-  :group 'helm-fuz)
-
-(defcustom helm-fuz-fuzzify-multimatch nil
-  "Enable skim style fuzzy multimatch if non-nil.
-
-You can use some control character to control the matching method of helm"
-  :type 'boolean
   :group 'helm-fuz)
 
 ;; Internal use variables
@@ -128,8 +121,8 @@ USE-REAL? and BASENAME? will be passed to `helm-fuz--get-cand-str' to get the
 real candidate string."
   (let* ((realstr (helm-fuz--get-cand-str cand use-real? basename?))
          (len (length realstr)))
-    ;; Short pattern may have higher score when matching longer pattern
-    ;; than exactly match itself
+    ;; FIXME: Short pattern may have higher score matching longer pattern
+    ;; than exactly matching itself
     ;; e.g. "ielm" will prefer [iel]m-[m]enu than [ielm]
     (if (string= realstr pattern)
         (list len most-positive-fixnum)

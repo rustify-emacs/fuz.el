@@ -1,14 +1,14 @@
-;;; fuz.el  --- Description  -*- lexical-binding: t -*-
+;;; fuz.el --- Description  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2019 Zhu Zihao
 
-;; Author: Zhu Zihao all_but_last@163.com
+;; Author: Zhu Zihao <all_but_last@163.com>
 ;; URL:
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: lisp
 
-;; This file is part of GNU Emacs.
+;; This file is NOT part of GNU Emacs.
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -30,7 +30,6 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'macroexp)
 (require 'fuz-core)
 
 (eval-when-compile
@@ -129,7 +128,6 @@ of FN and decide whether to get cached value or not."
 (defalias 'fuz-calc-score-skim 'fuz-core-calc-score-skim)
 (defalias 'fuz-find-indices-clangd 'fuz-core-find-indices-clangd)
 (defalias 'fuz-find-indices-skim 'fuz-core-find-indices-skim)
-
 
 (provide 'fuz)
 
