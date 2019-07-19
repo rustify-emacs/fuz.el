@@ -54,7 +54,7 @@ slower but return better result than clangd's."
           (const :tag "Clangd" clangd))
   :group 'ivy-fuz)
 
-(defcustom ivy-fuz-sort-limit 15000
+(defcustom ivy-fuz-sort-limit 5000
   ""
   :type '(choice
           (const :tag "Unlimited" nil)
