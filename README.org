@@ -1,0 +1,47 @@
+#+TITLE: Fuz.el -- Fast and precise fuzzy match scoring/matching utils for Emacs.
+
+* Introduction
+
+=fuz.el= provides some fuzzy match scoring/matching functions for Emacs,
+they are powered by Rust so it's fast enough.
+
+* Why fuz?
+
+  - It's powered by Rust, so it can be much more faster than Elisp
+    implementation
+  - It use a better subsequence alignment algorithm (O(m*n) time complexity)
+
+* Installation
+
+  The core part of =fuz.el= is written in Rust, provided as a dynamic module,
+  so you need an Emacs at least 25.1, compiled with dynamic module support.
+
+1. Setup Rust compile toolchain, you can check [[https://rustup.rs/][here]] for some information
+2. Clone the repository and put it under your Emacs's =load-path=
+3. Compile the module, using
+
+#+BEGIN_SRC sh
+cargo build --release
+ln -sv target/release/libfuz_core.so fuz-core.so
+#+END_SRC
+
+* Usage
+
+** Using with completion frameworks
+*** Helm
+
+    =fuz.el= can help you enhance your helm fuzzy searching quality and speed
+    with simple setup.
+
+#+BEGIN_SRC emacs-lisp
+  (with-eval-after-load 'helm
+    (require 'helm-fuz)
+    (helm-fuz-mode))
+#+END_SRC
+*** Ivy (WIP)
+*** Company (WIP)
+** Using fuz's score/match function in your Elisp
+*** TODO Add documentation here
+
+* Benchmark
+** TODO Add a benchmark here
