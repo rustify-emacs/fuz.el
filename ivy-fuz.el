@@ -104,15 +104,6 @@ Sign: (-> Str Str (List Long Long))"
 (defun ivy-fuz-sort-fn (pattern cands)
   (condition-case nil
       (let* ((bolp (string-prefix-p "^" pattern))
-             (fuzzy-regex
-              (concat "\\`"
-                      (and bolp (regexp-quote (substring pattern 1 2)))
-                      (mapconcat
-                       (lambda (x)
-                         (setq x (char-to-string x))
-                         (concat "[^" x "]*" (regexp-quote x)))
-                       (if bolp (substring pattern 2) pattern)
-                       "")))
              (realpat (if bolp (substring pattern 1) pattern))
              (memo-fn (fuz-memo-function
                        (lambda (cand) (ivy-fuz--get-score-data realpat cand))
@@ -121,7 +112,7 @@ Sign: (-> Str Str (List Long Long))"
               cands-to-sort)
           (while (and cands
                       (< counter ivy-fuz-sort-limit))
-            (when (string-match-p fuzzy-regex (car cands))
+            (when (> (cadr (funcall memo-fn (car cands))) most-negative-fixnum)
               (push (pop cands) cands-to-sort)
               (cl-incf counter)))
 
