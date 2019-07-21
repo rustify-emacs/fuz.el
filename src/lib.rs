@@ -5,6 +5,8 @@ use emacs::{ Env, Result };
 
 pub mod dynmod;
 
+mod utils;
+
 // Module Defintion
 emacs::plugin_is_GPL_compatible!();
 
