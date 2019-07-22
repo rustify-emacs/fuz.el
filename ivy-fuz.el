@@ -54,7 +54,7 @@ slower but return better result than clangd's."
           (const :tag "Clangd" clangd))
   :group 'ivy-fuz)
 
-(defcustom ivy-fuz-sort-limit 5000
+(defcustom ivy-fuz-sort-limit 10000
   ""
   :type '(choice
           (const :tag "Unlimited" nil)
@@ -113,7 +113,7 @@ Sign: (-> Str Str (List Long Long))"
                          (concat "[^" x "]*" (regexp-quote x)))
                        (if bolp (substring pattern 2) pattern)
                        "")))
-             (realpat (if bolp (substring pattern 1) pattern))
+             (realpat (if bolp (substring 1 pattern) pattern))
              (memo-fn (fuz-memo-function
                        (lambda (cand) (ivy-fuz--get-score-data realpat cand))
                        #'equal)))
@@ -135,13 +135,62 @@ Sign: (-> Str Str (List Long Long))"
                  cands)))
     (error cands)))
 
+(defun ivy-fuz-par-sort-fn (pattern cands)
+  (condition-case nil
+      (let* ((bolp (string-prefix-p "^" pattern))
+             (fuzzy-regex
+              (concat "\\`"
+                      (and bolp (regexp-quote (substring pattern 1 2)))
+                      (mapconcat
+                       (lambda (x)
+                         (setq x (char-to-string x))
+                         (concat "[^" x "]*" (regexp-quote x)))
+                       (if bolp (substring pattern 2) pattern)
+                       "")))
+             (realpat (if bolp (substring 1 pattern) pattern))
+             ;; (memo-fn (fuz-memo-function
+             ;;           (lambda (cand) (ivy-fuz--get-score-data realpat cand))
+             ;;           #'equal))
+             )
+        (let ((counter 0)
+              (cands-to-sort (make-vector ivy-fuz-sort-limit nil)))
+          (while (and cands
+                      (< counter ivy-fuz-sort-limit))
+            (when (string-match-p fuzzy-regex (car cands))
+              (aset cands-to-sort counter (pop cands))
+              (cl-incf counter)))
+          (message "%s" (length cands-to-sort))
+          (setq cands (fuz-sort-with-key! cands #'< #'length))
+          (let ((val (nconc (fuz-core-filter-cands-with-pat-skim realpat cands-to-sort t)
+                            cands)))
+            (message "%s" val)
+            val)))
+    (error cands)))
+
+
+
+(defun ivy-fuz--highlighter (indices str)
+  "Propertize STR with ivy matching face on INDICES.
+
+Sign: (-> (Listof Long) Str)
+
+Ivy use different face to highlight different match part of candidates."
+  (let ((i 0)
+        (last-j -2))
+    (dolist (j indices)
+      (unless (eq j (1+ last-j))
+        (cl-incf i))
+      (setq last-j j)
+      (ivy-add-face-text-property j (1+ j) (ivy--minibuffer-face i) str))
+    str))
+
 ;;;###autoload
 (defun ivy-fuz-highlight-fn (str)
   ""
-  (fuz-highlighter (ivy-fuz--fuzzy-indices (ivy--remove-prefix "^" ivy-text)
-                                           str)
-                   (ivy--minibuffer-face 0)
-                   str))
+  (ivy-fuz--highlighter
+   (ivy-fuz--fuzzy-indices (ivy--remove-prefix "^" ivy-text)
+                           str)
+   str))
 
 (provide 'ivy-fuz)
 

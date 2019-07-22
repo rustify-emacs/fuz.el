@@ -167,14 +167,17 @@ Sign: (-> (Listof Cand) Any (Listof Cand))"
                                       cands
                                       #'helm-fuz--get-single-cand-score-data))
 
+(defun helm-fuz-par-fuzzy-matching-sort-fn! (cands _source)
+  )
+
 (defun helm-fuz-fuzzy-matching-sort-fn-preserve-ties-order! (cands _source)
   "Sort the CANDS by scoring it with `helm-pattern', preserve ties order.
 
 Sign: (-> (Listof Cand) Any (Listof Cand))"
   (helm-fuz-fuzzy-matching-sort-fn-1! helm-pattern
-                                     cands
-                                     #'helm-fuz--get-single-cand-score-data
-                                     t))
+                                      cands
+                                      #'helm-fuz--get-single-cand-score-data
+                                      t))
 
 
 
