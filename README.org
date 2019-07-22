@@ -43,7 +43,7 @@ ln -sv target/release/libfuz_core.so fuz-core.so
     Add these config to your =.emacs.d=
 
     #+BEGIN_SRC emacs-lisp
-      (setq ivy-sort-functions-alist '(t . ivy-fuz-sort-fn))
+      (setq ivy-sort-matches-functions-alist '(t . ivy-fuz-sort-fn))
       (setq ivy-re-builders-alist '(t . ivy-fuz-fuzzy-regex))
       (setq ivy-highlight-functions-alist '(ivy-fuz-fuzzy-regex . ivy-fuz-highlight-fn))
 
