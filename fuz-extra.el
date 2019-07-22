@@ -3,10 +3,7 @@
 ;; Copyright (C) 2019 Zhu Zihao
 
 ;; Author: Zhu Zihao <all_but_last@163.com>
-;; URL:
-;; Version: 0.0.1
-;; Package-Requires: ((emacs "25.1"))
-;; Keywords: lisp
+;; URL: https://github.com/cireu/fuz.el
 
 ;; This file is NOT part of GNU Emacs.
 
