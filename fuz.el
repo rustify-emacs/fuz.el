@@ -40,6 +40,7 @@
 ;;; Code:
 
 (require 'fuz-core)
+(require 'fuz-extra)
 
 (eval-when-compile
   (require 'subr-x)

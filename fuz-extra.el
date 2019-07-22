@@ -30,9 +30,7 @@
 
 ;;; Code:
 
-(require 'cl-lib)
 (require 'inline)
-(require 'fuz)
 
 (eval-when-compile
   (require 'pcase))
@@ -48,21 +46,6 @@ Sign: (-> (Listof Long) Sym Str Str)"
       (add-text-properties
        (+ 1 it) (+ 2 it) `(face ,face)))
     (buffer-string)))
-
-(cl-defun fuz-logand-compose-match (fn patterns str)
-  "
-
-Sign: (-> (-> Str Str (Listof Long)) (Listof Str) Str (Option (Listof Long)))"
-  (let ((total-score 0)
-        all-indices)
-    (dolist (it patterns)
-      (pcase (funcall fn it str)
-        (`(,score . ,indices)
-          (setq all-indices (nconc all-indices indices))
-          (setq total-score (+ total-score score)))
-        (_
-         (cl-return nil))))
-    (cons total-score (sort (cl-delete-duplicates all-indices :test #'=) #'<))))
 
 (define-inline fuz-sort-with-key! (list comp-fn key)
   "Sort LIST with COMP-FN, transfrom elem in LIST with KEY before comparison."
