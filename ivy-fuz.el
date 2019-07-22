@@ -98,7 +98,7 @@ Sign: (-> Str Str (List Long Long))"
       (list len (ivy-fuz--fuzzy-score pattern cand)))))
 
 ;;;###autoload
-(defalias 'ivy-fuz-fuzzy-regex #'ivy--regex-fuzzy)
+(defalias 'ivy-fuz-regex-fuzzy #'ivy--regex-fuzzy)
 
 ;;;###autoload
 (defun ivy-fuz-sort-fn (pattern cands)
