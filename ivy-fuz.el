@@ -128,11 +128,20 @@ Sign: (-> Str Str (List Long Long))"
 
 ;;;###autoload
 (defun ivy-fuz-highlight-fn (str)
-  ""
-  (fuz-highlighter (ivy-fuz--fuzzy-indices (ivy--remove-prefix "^" ivy-text)
-                                           str)
-                   (ivy--minibuffer-face 0)
-                   str))
+  "Put highlight face on matched positions of the STR.
+
+Sign: (-> Str Str)"
+  (let* ((pat (ivy--remove-prefix "^" ivy-text))
+         (indices (ivy-fuz--fuzzy-indices pat str))
+         (counter 0)
+         (last-pos -2))
+    (dolist (pos indices)
+      (unless (= pos (1+ last-pos))
+        (cl-incf counter))
+      (setq last-pos pos)
+      (ivy-add-face-text-property pos (1+ pos)
+                                  (ivy--minibuffer-face counter) str))
+    str))
 
 (provide 'ivy-fuz)
 
