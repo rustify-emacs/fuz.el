@@ -33,7 +33,7 @@ ln -sv target/release/libfuz_core.so fuz-core.so
     =fuz.el= can help you enhance your helm fuzzy searching quality and speed
     with simple setup.
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :results none
   (with-eval-after-load 'helm
     (require 'helm-fuz)
     (helm-fuz-mode))
@@ -42,13 +42,13 @@ ln -sv target/release/libfuz_core.so fuz-core.so
 
     Add these config to your =.emacs.d=
 
-    #+BEGIN_SRC emacs-lisp
-      (setq ivy-sort-matches-functions-alist '(t . ivy-fuz-sort-fn))
-      (setq ivy-re-builders-alist '(t . ivy-fuz-regex-fuzzy))
-      (setq ivy-highlight-functions-alist '(ivy-fuz-fuzzy-regex . ivy-fuz-highlight-fn))
+    #+BEGIN_SRC emacs-lisp :results none
+      (setq ivy-sort-matches-functions-alist '((t . ivy-fuz-sort-fn)))
+      (setq ivy-re-builders-alist '((t . ivy-fuz-regex-fuzzy)))
 
       (with-eval-after-load 'ivy
-        (require 'ivy-fuz))
+        (require 'ivy-fuz)
+        (add-to-list 'ivy-highlight-functions-alist '(ivy-fuz-regex-fuzzy . ivy-fuz-highlight-fn)))
     #+END_SRC
 
 *** Company (WIP)
