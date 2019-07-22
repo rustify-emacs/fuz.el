@@ -3,9 +3,9 @@
 ;; Copyright (C) 2019 Zhu Zihao
 
 ;; Author: Zhu Zihao <all_but_last@163.com>
-;; URL:
+;; URL: https://github.com/cireu/fuz.el
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "25.1") (helm "3.2"))
+;; Package-Requires: ((emacs "25.1") (fuz "0.0.1") (helm "3.2"))
 ;; Keywords: convenience
 
 ;; This file is NOT part of GNU Emacs.
@@ -25,7 +25,10 @@
 
 ;;; Commentary:
 
-;;
+;; Fuzzy sorting support for `helm'.
+
+;; By using this package, you should enable `helm-fuz-mode' after
+;; loaded `helm'.
 
 ;;; Code:
 
@@ -47,7 +50,7 @@
 
 (defgroup helm-fuz ()
   "Sort `helm' candidates by fuz."
-  :group 'convenience
+  :group 'helm
   :prefix "helm-fuz-")
 
 (defcustom helm-fuz-sorting-method 'skim
@@ -233,6 +236,7 @@ Sign: (-> (-> Str (Option Cand)) Str (Option Cand))"
        (let* ((dir-len (length (file-name-nondirectory disp)))
               (dir (substring disp 0 dir-len))
               (basename (substring disp dir-len)))
+         ;; According to `helm-flx', candidates should be modified in-place.
          (setcar
           cand
           (concat dir

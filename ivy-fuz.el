@@ -3,10 +3,10 @@
 ;; Copyright (C) 2019 Zhu Zihao
 
 ;; Author: Zhu Zihao <all_but_last@163.com>
-;; URL:
+;; URL: https://github.com/cireu/fuz.el
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "25.1") (ivy "20190717"))
-;; Keywords: lisp
+;; Package-Requires: ((emacs "25.1") (fuz "0.0.1") (ivy "20190717"))
+;; Keywords: convenience
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -25,7 +25,11 @@
 
 ;;; Commentary:
 
-;;
+;; API:
+
+;; - `ivy-fuz-sort-fn' :: The main entry of sorting method.
+;; - `ivy-fuz-regex-fuzzy' :: An alias of `ivy--regex-fuzzy', just identifier.
+;; - `ivy-fuz-highlight-fn' :: The highlighter for fuzzy matched candidates.
 
 ;;; Code:
 
@@ -55,13 +59,14 @@ slower but return better result than clangd's."
   :group 'ivy-fuz)
 
 (defcustom ivy-fuz-sort-limit 5000
-  ""
+  "The limitaition for fuzzy sorting.
+
+Set to `nil' will sort all matched candidates."
   :type '(choice
           (const :tag "Unlimited" nil)
           integer)
   :group 'ivy-fuz)
 
-(defvar ivy-fuz--sort-timer (float-time))
 (defvar ivy-fuz--score-cache (make-hash-table :test #'equal))
 
 ;;; Utils
@@ -97,11 +102,17 @@ Sign: (-> Str Str (List Long Long))"
         (list len most-positive-fixnum)
       (list len (ivy-fuz--fuzzy-score pattern cand)))))
 
+;; Create a unique identifier so we can specify match highlighter
+;; for `ivy-fuz-sort-fn'
+
 ;;;###autoload
 (defalias 'ivy-fuz-regex-fuzzy #'ivy--regex-fuzzy)
 
 ;;;###autoload
 (defun ivy-fuz-sort-fn (pattern cands)
+  "The entry of the package.
+
+Sign: (-> Str (Listof Str) (Listof Str))"
   (condition-case nil
       (let* ((bolp (string-prefix-p "^" pattern))
              (realpat (if bolp (substring pattern 1) pattern))

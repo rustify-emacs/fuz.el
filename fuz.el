@@ -3,7 +3,7 @@
 ;; Copyright (C) 2019 Zhu Zihao
 
 ;; Author: Zhu Zihao <all_but_last@163.com>
-;; URL:
+;; URL: https://github.com/cireu/fuz.el
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: lisp
@@ -25,7 +25,17 @@
 
 ;;; Commentary:
 
-;;
+;; `fuz' provided a set of basic fuzzy match and indices searching function.
+;; The core part of algorithm is powered by Rust, with the help of emacs
+;; dynamic modules.
+
+;; Public APIs:
+;; - `fuz-fuzzy-match-skim'
+;; - `fuz-fuzzy-match-clangd'
+;; - `fuz-calc-score-clangd'
+;; - `fuz-calc-score-skim'
+;; - `fuz-find-indices-clangd'
+;; - `fuz-find-indices-skim'
 
 ;;; Code:
 
@@ -36,21 +46,24 @@
 
   ;; Backward compatibility for Emacs 25
   (unless (>= emacs-major-version 26)
-    (unless (fboundp 'if-let*) (defalias 'if-let* #'if-let))
-    (unless (fboundp 'when-let*) (defalias 'when-let* #'when-let))))
+    (unless (fboundp 'if-let*) (defalias 'if-let* #'if-let))))
 
 (defsubst fuz-fuzzy-match-skim (pattern str)
-  "
+  "Match STR against PATTERN, using skim's algorithm.
 
-Sign: (-> Str Str (Option (Listof Long)))"
+Sign: (-> Str Str (Option (Listof Long)))
+
+Return (SCORE . (INDICES)) if matched, otherwise return `nil'."
   (if-let* ((total-score (fuz-core-calc-score-skim pattern str)))
       (cons total-score (fuz-core-find-indices-skim pattern str))
     nil))
 
 (defsubst fuz-fuzzy-match-clangd (pattern str)
-  "
+  "Match STR against PATTERN, using clangd's algorithm.
 
-Sign: (-> Str Str (Option (Listof Long)))"
+Sign: (-> Str Str (Option (Listof Long)))
+
+Return (SCORE . (INDICES)) if matched, otherwise return `nil'."
   (if-let* ((total-score (fuz-core-calc-score-clangd pattern str)))
       (cons total-score (fuz-core-find-indices-clangd pattern str))
     nil))
