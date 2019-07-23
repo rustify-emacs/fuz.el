@@ -46,7 +46,7 @@ Sign: (-> (Listof Long) Sym Str Str)"
 
 (define-inline fuz-sort-with-key! (list comp-fn key)
   "Sort LIST with COMP-FN, transfrom elem in LIST with KEY before comparison."
-  (inline-letevals (key)
+  (inline-letevals (key comp-fn)
     (inline-quote
      (sort ,list (lambda (e1 e2)
                    (funcall ,comp-fn
