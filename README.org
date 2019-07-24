@@ -25,6 +25,13 @@ cargo build --release
 ln -sv target/release/libfuz_core.so fuz-core.so
 #+END_SRC
 
+For MacOS users, dynamic library is suffixed with =.dylib=, you may need to
+change the command to
+
+#+BEGIN_SRC sh
+ln -sv target/release/libfuz_core.dylib fuz-core.so
+#+END_SRC
+
 * Usage
 
 ** Using with completion frameworks
