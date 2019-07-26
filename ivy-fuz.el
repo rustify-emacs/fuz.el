@@ -118,7 +118,8 @@ Sign: (-> Str (Listof Str) (Listof Str))"
              (realpat (if bolp (substring pattern 1) pattern))
              (memo-fn (fuz-memo-function
                        (lambda (cand) (ivy-fuz--get-score-data realpat cand))
-                       #'equal)))
+                       #'equal
+                       ivy-fuz-sort-limit)))
         (let ((counter 0)
               cands-to-sort)
           (while (and cands

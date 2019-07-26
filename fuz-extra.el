@@ -53,14 +53,16 @@ Sign: (-> (Listof Long) Sym Str Str)"
                             (funcall ,key e1)
                             (funcall ,key e2)))))))
 
-(defun fuz-memo-function (fn test)
+(defun fuz-memo-function (fn test &optional size)
   "Memoize the FN.
 
-Sign: (All (I O) (-> (-> I O) (U 'eq 'eql 'equal) (-> I O)))
+Sign: (All (I O) (->* ((-> I O) (U 'eq 'eql 'equal)) (Option Int) (-> I O)))
 
-TEST can be one of `eq', `eql', `equal', which used as cache hash's test-fn."
-  (let ((cache (make-hash-table :test test))
-        (not-found-sym (make-symbol "not-found")))
+TEST can be one of `eq', `eql', `equal', which used as cache hash's test-fn.
+If SIZE was provided, make the hash-table that with initial size SIZE."
+  (let* ((arglist `(:test ,test ,@(if size (list :size size))))
+         (cache (apply #'make-hash-table arglist))
+         (not-found-sym (make-symbol "not-found")))
     (lambda (input)
       (let ((val (gethash input cache not-found-sym)))
         (if (eq val not-found-sym)

@@ -147,9 +147,11 @@ matching data, then sort CANDS with those data. If PRESERVE-TIE-ORDER? is nil,
 tie in scores are sorted by length of the candidates."
   (if (string= pattern "")
       cands
-    (let ((memo-data-fn (fuz-memo-function (lambda (cand)
-                                             (funcall data-fn pattern cand))
-                                           #'equal)))
+    (let* ((len (length cands))
+           (memo-data-fn (fuz-memo-function (lambda (cand)
+                                              (funcall data-fn pattern cand))
+                                            #'equal
+                                            len)))
       ;; No need to use `cl-sort' here,
       ;; we can perform destructive operation on cands.
       (fuz-sort-with-key! cands
