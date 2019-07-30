@@ -16,9 +16,10 @@ they are powered by Rust so it's fast enough.
   The core part of =fuz.el= is written in Rust, provided as a dynamic module,
   so you need an Emacs at least 25.1, compiled with dynamic module support.
 
-1. Setup Rust compile toolchain, you can check [[https://rustup.rs/][here]] for some information
-2. Clone the repository and put it under your Emacs's =load-path=
-3. Compile the module, using
+1. Setup Rust compile toolchain, you can check [[https://rustup.rs/][here]] for some information.
+2. And you also need [[https://llvm.org/][LLVM]].
+3. Clone the repository and put it under your Emacs's =load-path=
+4. Compile the module, using
 
 #+BEGIN_SRC sh
 cargo build --release
@@ -30,6 +31,12 @@ change the command to
 
 #+BEGIN_SRC sh
 ln -sv target/release/libfuz_core.dylib fuz-core.so
+#+END_SRC
+
+Windows users need to run this command in CMD with admin access.
+
+#+BEGIN_SRC batch
+mklink fuz-core.dll target/release/fuz_core.dll
 #+END_SRC
 
 * Usage
