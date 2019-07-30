@@ -34,7 +34,8 @@ matrix:
     # Windows
     - env: TARGET=x86_64-pc-windows-gnu
       rust: nightly
-
+    - env: TARGET=i686-pc-windows-gnu
+    
 before_install:
   - set -e
   - rustup self update
