@@ -118,7 +118,7 @@ If BASENAME?, use `helm-basename' to transfrom PATTERN."
                                                use-real? basename?)
   "Return (LENGTH SCORE) by matching CAND with PATTERN.
 
-Sign: (->* (Str Cand) (Bool Bool) (List Long Long))
+Sign: (->* (Str Cand) (Bool Bool) (Vector Long Long))
 
 USE-REAL? and BASENAME? will be passed to `helm-fuz--get-cand-str' to get the
 real candidate string."
@@ -128,8 +128,8 @@ real candidate string."
     ;; than exactly matching itself
     ;; e.g. "ielm" will prefer [iel]m-[m]enu than [ielm]
     (if (string= realstr pattern)
-        (list len most-positive-fixnum)
-      (list len (helm-fuz--fuzzy-score pattern realstr)))))
+        (vector len most-positive-fixnum)
+      (vector len (helm-fuz--fuzzy-score pattern realstr)))))
 
 (defun helm-fuz-fuzzy-matching-sort-fn-1! (pattern
                                            cands
@@ -155,7 +155,7 @@ tie in scores are sorted by length of the candidates."
       ;; No need to use `cl-sort' here,
       ;; we can perform destructive operation on cands.
       (fuz-sort-with-key! cands
-                          (pcase-lambda (`(,len1 ,scr1) `(,len2 ,scr2))
+                          (pcase-lambda (`[,len1 ,scr1] `[,len2 ,scr2])
                               (if (= scr1 scr2)
                                   (when (not preserve-tie-order?)
                                     (< len1 len2))
