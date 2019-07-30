@@ -4,7 +4,7 @@
 
 ;; Author: Zhu Zihao <all_but_last@163.com>
 ;; URL: https://github.com/cireu/fuz.el
-;; Version: 0.0.1
+;; Version: 1.0.0
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: lisp
 

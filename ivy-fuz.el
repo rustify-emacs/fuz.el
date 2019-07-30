@@ -4,8 +4,8 @@
 
 ;; Author: Zhu Zihao <all_but_last@163.com>
 ;; URL: https://github.com/cireu/fuz.el
-;; Version: 0.0.1
-;; Package-Requires: ((emacs "25.1") (fuz "0.0.1") (ivy "20190717"))
+;; Version: 1.0.0
+;; Package-Requires: ((emacs "25.1") (fuz "1.0.0") (ivy "20190717"))
 ;; Keywords: convenience
 
 ;; This file is NOT part of GNU Emacs.
