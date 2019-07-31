@@ -138,7 +138,7 @@ real candidate string."
                                              preserve-tie-order?)
   "Main helper of helm sorting functions.
 
-Sign: (->* (Str (Listof Cand) (-> Str Cand (List Long Long)))
+Sign: (->* (Str (Listof Cand) (-> Str Cand (Vector Long Long)))
            (Bool)
            (Listof Cand))
 
@@ -215,14 +215,14 @@ Sign: (-> Cand Cand)"
 (defun helm-fuz--get-ff-cand-score-data (pattern cand)
   "Like `helm-fuz--get-single-cand-score-data', but for `helm-find-files' like function.
 
-Sign: (-> Str Cand (List Long Long))"
+Sign: (-> Str Cand (Vector Long Long))"
   (pcase cand
     ((and `(,disp . ,real)
           (guard (or (member real '("." ".."))
                      (and (string-match-p (rx bos "  ") real)
                           (string= real (substring-no-properties disp 2))))))
      (ignore disp)                 ;Suppress byte-compiler
-     (list (length real) most-positive-fixnum))
+     (vector (length real) most-positive-fixnum))
     (_
      (helm-fuz--get-single-cand-score-data (helm-basename pattern) cand t t))))
 
