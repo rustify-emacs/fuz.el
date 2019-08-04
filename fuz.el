@@ -39,8 +39,33 @@
 
 ;;; Code:
 
-(require 'fuz-core)
-(require 'fuz-extra)
+(defun fuz-build-and-load-dymod! ()
+  "Build and load dyamic module."
+  (unless (executable-find "cargo")
+    (error "Rust package manager \"cargo\" not found!"))
+  (let* ((default-directory (file-name-directory (locate-library "fuz")))
+         (dll-name (cl-case system-type
+                     ((windows-nt ms-dos cygwin) "fuz_core.dll")
+                     (darwin "libfuz_core.dylib")
+                     (t "libfuz_core.so")))
+         (target-name (cl-case system-type
+                        ((windows-nt ms-dos cygwin) "fuz-core.dll")
+                        (t "fuz-core.so")))
+         (dll-path (expand-file-name (format "target/release/%s" dll-name)))
+         (target-path (expand-file-name target-name))
+         (buf (generate-new-buffer "*fuz compilation*")))
+    (pop-to-buffer buf)
+    (let ((errno (shell-command "cargo build --release" buf)))
+      (if (= errno 0)
+          (progn
+            (make-symbolic-link dll-path target-path)
+            (load target-path nil t)
+            (message "Successfully build dynamic module."))
+        (error "Failed to compile dynamic modules, check buffer \"%s\" for detailed information."
+               (buffer-name buf))))))
+
+(unless (require 'fuz-core nil t)
+  (fuz-build-and-load-dymod!))
 
 (eval-when-compile
   (require 'subr-x)
@@ -49,14 +74,28 @@
   (unless (>= emacs-major-version 26)
     (unless (fboundp 'if-let*) (defalias 'if-let* #'if-let))))
 
+(require 'fuz-extra)
+
+;;; Export function aliases
+
+(declare-function fuz-core-calc-score-clangd "fuz-core")
+(declare-function fuz-core-calc-score-skim "fuz-core")
+(declare-function fuz-core-find-indices-clangd "fuz-core")
+(declare-function fuz-core-find-indices-skim "fuz-core")
+
+(defalias 'fuz-calc-score-clangd 'fuz-core-calc-score-clangd)
+(defalias 'fuz-calc-score-skim 'fuz-core-calc-score-skim)
+(defalias 'fuz-find-indices-clangd 'fuz-core-find-indices-clangd)
+(defalias 'fuz-find-indices-skim 'fuz-core-find-indices-skim)
+
 (defsubst fuz-fuzzy-match-skim (pattern str)
   "Match STR against PATTERN, using skim's algorithm.
 
 Sign: (-> Str Str (Option (Listof Long)))
 
 Return (SCORE . (INDICES)) if matched, otherwise return `nil'."
-  (if-let* ((total-score (fuz-core-calc-score-skim pattern str)))
-      (cons total-score (fuz-core-find-indices-skim pattern str))
+  (if-let* ((total-score (fuz-calc-score-skim pattern str)))
+      (cons total-score (fuz-find-indices-skim pattern str))
     nil))
 
 (defsubst fuz-fuzzy-match-clangd (pattern str)
@@ -65,16 +104,9 @@ Return (SCORE . (INDICES)) if matched, otherwise return `nil'."
 Sign: (-> Str Str (Option (Listof Long)))
 
 Return (SCORE . (INDICES)) if matched, otherwise return `nil'."
-  (if-let* ((total-score (fuz-core-calc-score-clangd pattern str)))
-      (cons total-score (fuz-core-find-indices-clangd pattern str))
+  (if-let* ((total-score (fuz-calc-score-clangd pattern str)))
+      (cons total-score (fuz-find-indices-clangd pattern str))
     nil))
-
-;;; Export function aliases
-
-(defalias 'fuz-calc-score-clangd 'fuz-core-calc-score-clangd)
-(defalias 'fuz-calc-score-skim 'fuz-core-calc-score-skim)
-(defalias 'fuz-find-indices-clangd 'fuz-core-find-indices-clangd)
-(defalias 'fuz-find-indices-skim 'fuz-core-find-indices-skim)
 
 (provide 'fuz)
 
