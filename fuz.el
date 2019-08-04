@@ -39,6 +39,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl-lib))
+
 (defun fuz-build-and-load-dymod! ()
   "Build and load dyamic module."
   (unless (executable-find "cargo")
