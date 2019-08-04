@@ -53,12 +53,16 @@
                         (t "fuz-core.so")))
          (dll-path (expand-file-name (format "target/release/%s" dll-name)))
          (target-path (expand-file-name target-name))
-         (buf (generate-new-buffer "*fuz compilation*")))
+         (buf (generate-new-buffer "*fuz compilation*"))
+         (move-file-fn (cl-case system-type
+                         ;; Need root permission to make symlink on Windows 10
+                         (windows-nt #'copy-file)
+                         (t #'make-symbolic-link))))
     (pop-to-buffer buf)
     (let ((errno (shell-command "cargo build --release" buf)))
       (if (= errno 0)
           (progn
-            (make-symbolic-link dll-path target-path)
+            (funcall move-file-fn dll-path target-path)
             (load target-path nil t)
             (message "Successfully build dynamic module."))
         (error "Failed to compile dynamic modules, check buffer \"%s\" for detailed information."
