@@ -60,13 +60,15 @@
                          ;; Need root permission to make symlink on Windows 10
                          (windows-nt #'copy-file)
                          (t #'make-symbolic-link))))
-    (pop-to-buffer buf)
+    (message "Compiling the dynamic module of `fuz', please wait.")
     (let ((errno (shell-command "cargo build --release" buf)))
       (if (= errno 0)
           (progn
             (funcall move-file-fn dll-path target-path)
             (load target-path nil t)
+            (kill-buffer buf)
             (message "Successfully build dynamic module."))
+        (pop-to-buffer buf)
         (error "Failed to compile dynamic modules, check buffer \"%s\" for detailed information."
                (buffer-name buf))))))
 
