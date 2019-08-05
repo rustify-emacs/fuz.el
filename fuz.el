@@ -39,42 +39,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
-
-(defun fuz-build-and-load-dymod! ()
-  "Build and load dyamic module."
-  (unless (executable-find "cargo")
-    (error "Rust package manager \"cargo\" not found!"))
-  (let* ((default-directory (file-name-directory (locate-library "fuz")))
-         (dll-name (cl-case system-type
-                     ((windows-nt ms-dos cygwin) "fuz_core.dll")
-                     (darwin "libfuz_core.dylib")
-                     (t "libfuz_core.so")))
-         (target-name (cl-case system-type
-                        ((windows-nt ms-dos cygwin) "fuz-core.dll")
-                        (t "fuz-core.so")))
-         (dll-path (expand-file-name (format "target/release/%s" dll-name)))
-         (target-path (expand-file-name target-name))
-         (buf (generate-new-buffer "*fuz compilation*"))
-         (move-file-fn (cl-case system-type
-                         ;; Need root permission to make symlink on Windows 10
-                         (windows-nt #'copy-file)
-                         (t #'make-symbolic-link))))
-    (message "Compiling the dynamic module of `fuz', please wait.")
-    (let ((errno (shell-command "cargo build --release" buf)))
-      (if (= errno 0)
-          (progn
-            (funcall move-file-fn dll-path target-path)
-            (load target-path nil t)
-            (kill-buffer buf)
-            (message "Successfully build dynamic module."))
-        (pop-to-buffer buf)
-        (error "Failed to compile dynamic modules, check buffer \"%s\" for detailed information."
-               (buffer-name buf))))))
-
-(unless (require 'fuz-core nil t)
-  (fuz-build-and-load-dymod!))
-
 (eval-when-compile
   (require 'subr-x)
 
@@ -82,19 +46,17 @@
   (unless (>= emacs-major-version 26)
     (unless (fboundp 'if-let*) (defalias 'if-let* #'if-let))))
 
+(require 'fuz-loader)
 (require 'fuz-extra)
 
 ;;; Export function aliases
-
-(declare-function fuz-core-calc-score-clangd "fuz-core")
-(declare-function fuz-core-calc-score-skim "fuz-core")
-(declare-function fuz-core-find-indices-clangd "fuz-core")
-(declare-function fuz-core-find-indices-skim "fuz-core")
 
 (defalias 'fuz-calc-score-clangd 'fuz-core-calc-score-clangd)
 (defalias 'fuz-calc-score-skim 'fuz-core-calc-score-skim)
 (defalias 'fuz-find-indices-clangd 'fuz-core-find-indices-clangd)
 (defalias 'fuz-find-indices-skim 'fuz-core-find-indices-skim)
+
+;;; Utils
 
 (defsubst fuz-fuzzy-match-skim (pattern str)
   "Match STR against PATTERN, using skim's algorithm.
