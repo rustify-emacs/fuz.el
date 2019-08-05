@@ -69,8 +69,9 @@
 (declare-function fuz-core-find-indices-clangd "fuz-core")
 (declare-function fuz-core-find-indices-skim "fuz-core")
 
-(unless (require 'fuz-core nil t)
-  (fuz-build-and-load-dymod!))
+(cl-eval-when '(load eval)
+  (unless (require 'fuz-core nil t)
+    (fuz-build-and-load-dymod!)))
 
 (provide 'fuz-loader)
 
