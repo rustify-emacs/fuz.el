@@ -46,8 +46,13 @@
   (unless (>= emacs-major-version 26)
     (unless (fboundp 'if-let*) (defalias 'if-let* #'if-let))))
 
-(require 'fuz-loader)
+(require 'fuz-core nil t)
 (require 'fuz-extra)
+
+(declare-function fuz-core-calc-score-clangd "fuz-core")
+(declare-function fuz-core-calc-score-skim "fuz-core")
+(declare-function fuz-core-find-indices-clangd "fuz-core")
+(declare-function fuz-core-find-indices-skim "fuz-core")
 
 ;;; Export function aliases
 
@@ -77,6 +82,39 @@ Return (SCORE . (INDICES)) if matched, otherwise return `nil'."
   (if-let* ((total-score (fuz-calc-score-clangd pattern str)))
       (cons total-score (fuz-find-indices-clangd pattern str))
     nil))
+
+;;; Bootstrap helper
+
+(defun fuz-build-and-load-dymod ()
+  "Build and load dyamic module."
+  (interactive)
+  (unless (executable-find "cargo")
+    (error "Rust package manager \"cargo\" not found!"))
+  (let* ((default-directory (file-name-directory (locate-library "fuz")))
+         (dll-name (cl-case system-type
+                     ((windows-nt ms-dos cygwin) "fuz_core.dll")
+                     (darwin "libfuz_core.dylib")
+                     (t "libfuz_core.so")))
+         (target-name (cl-case system-type
+                        ((windows-nt ms-dos cygwin) "fuz-core.dll")
+                        (t "fuz-core.so")))
+         (dll-path (expand-file-name (format "target/release/%s" dll-name)))
+         (target-path (expand-file-name target-name))
+         (buf (generate-new-buffer "*fuz compilation*"))
+         (move-file-fn (cl-case system-type
+                         ;; Need root permission to make symlink on Windows 10
+                         (windows-nt #'copy-file)
+                         (t #'make-symbolic-link))))
+    (message "Compiling the dynamic module of `fuz', please wait.")
+    (pop-to-buffer buf)
+    (let ((errno (call-process "cargo" nil buf t "build" "--release")))
+      (if (= errno 0)
+          (progn
+            (funcall move-file-fn dll-path target-path)
+            (load target-path nil t)
+            (message "Successfully build dynamic module."))
+        (error "Failed to compile dynamic modules, check buffer \"%s\" for detailed information."
+               (buffer-name buf))))))
 
 (provide 'fuz)
 

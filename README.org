@@ -19,8 +19,7 @@ they are powered by Rust so it's fast enough.
 1. Setup Rust compile toolchain, you can check [[https://rustup.rs/][here]] for some information.
 2. And you also need [[https://llvm.org/][LLVM]].
 3. Clone the repository and put it under your Emacs's =load-path=
-4. Load =fuz.el=. =fuz= will try to compile the dynamic module when failed to
-   load one.
+4. Load =fuz.el=. Run =fuz-build-and-load-dymod= to build dynamic module.
 
 * Usage
 
