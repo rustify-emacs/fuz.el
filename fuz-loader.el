@@ -66,11 +66,10 @@
 (declare-function fuz-core-find-indices-clangd "fuz-core")
 (declare-function fuz-core-find-indices-skim "fuz-core")
 
-(cl-eval-when '(load eval)
-  (unless (require 'fuz-core nil t)
-    (fuz-build-and-load-dymod!)))
-
 (provide 'fuz-loader)
+
+(unless (require 'fuz-core nil t)
+  (fuz-build-and-load-dymod!))
 
 ;; Local Variables:
 ;; coding: utf-8
