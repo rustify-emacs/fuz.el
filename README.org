@@ -21,6 +21,14 @@ they are powered by Rust so it's fast enough.
 3. Clone the repository and put it under your Emacs's =load-path=
 4. Load =fuz.el=. Run =fuz-build-and-load-dymod= to build dynamic module.
 
+Add this snippet to your =.emacs.d= to make compilation automatically
+
+#+BEGIN_SRC emacs-lisp :results none
+  (require 'fuz)
+  (unless (require 'fuz-core nil t)
+    (fuz-build-and-load-dymod))
+#+END_SRC
+
 * Usage
 
 ** Using with completion frameworks
