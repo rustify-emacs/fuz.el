@@ -56,10 +56,10 @@
 
 ;;; Export function aliases
 
-(defalias 'fuz-calc-score-clangd 'fuz-core-calc-score-clangd)
-(defalias 'fuz-calc-score-skim 'fuz-core-calc-score-skim)
-(defalias 'fuz-find-indices-clangd 'fuz-core-find-indices-clangd)
-(defalias 'fuz-find-indices-skim 'fuz-core-find-indices-skim)
+(defalias 'fuz-calc-score-clangd #'fuz-core-calc-score-clangd)
+(defalias 'fuz-calc-score-skim #'fuz-core-calc-score-skim)
+(defalias 'fuz-find-indices-clangd #'fuz-core-find-indices-clangd)
+(defalias 'fuz-find-indices-skim #'fuz-core-find-indices-skim)
 
 ;;; Utils
 
