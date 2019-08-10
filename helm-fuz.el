@@ -165,7 +165,7 @@ tie in scores are sorted by length of the candidates."
 ;;; Export function
 
 (defun helm-fuz-fuzzy-matching-sort-fn! (cands _source)
-  "Sort the CANDS by scoring it with `helm-pattern'
+  "Sort the CANDS by scoring it with `helm-pattern'.
 
 Sign: (-> (Listof Cand) Any (Listof Cand))"
   (helm-fuz-fuzzy-matching-sort-fn-1! helm-pattern
@@ -184,7 +184,7 @@ Sign: (-> (Listof Cand) Any (Listof Cand))"
 
 
 (defun helm-fuz-M-x-fuzzy-sort-fn! (cands _source)
-  "Sorting function for `helm-M-x'
+  "Sorting function for `helm-M-x'.
 
 Sign: (-> (Listof Cand) Any (Listof Cand))"
   (helm-fuz-fuzzy-matching-sort-fn-1! helm-pattern
