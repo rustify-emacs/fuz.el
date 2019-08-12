@@ -104,7 +104,8 @@ Sign: (-> Str Str (Option (Listof Long)))"
 
 Sign: (->* (Cand) (Bool Bool) Str)
 
-If USE-REAL? and PATTERN is a cons, use the `cdr' of PATTERN, otherwise use `car'.
+If USE-REAL? and PATTERN is a cons, use the `cdr' of PATTERN,
+otherwise use `car'.
 If BASENAME?, use `helm-basename' to transfrom PATTERN."
   (let* ((visitor (if use-real? #'cdr #'car)))
     (cond ((and basename? (consp cand))
@@ -213,15 +214,17 @@ Sign: (-> Cand Cand)"
 ;;; Find Files Fuzzy
 
 (defun helm-fuz--get-ff-cand-score-data (pattern cand)
-  "Like `helm-fuz--get-single-cand-score-data', but for `helm-find-files' like function.
+  "Return (LENGTH SCORE) by matching CAND with PATTERN.
 
-Sign: (-> Str Cand (Vector Long Long))"
+Sign: (-> Str Cand (Vector Long Long))
+
+This function is for `helm-find-files' like helm functions."
   (pcase cand
     ((and `(,disp . ,real)
           (guard (or (member real '("." ".."))
                      (and (string-match-p (rx bos "  ") real)
                           (string= real (substring-no-properties disp 2))))))
-     (ignore disp)                 ;Suppress byte-compiler
+     (ignore disp)                      ;Suppress byte-compiler
      (vector (length real) most-positive-fixnum))
     (_
      (helm-fuz--get-single-cand-score-data (helm-basename pattern) cand t t))))
