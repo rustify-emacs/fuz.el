@@ -230,7 +230,7 @@ This function is for `helm-find-files' like helm functions."
      (helm-fuz--get-single-cand-score-data (helm-basename pattern) cand t t))))
 
 (defun helm-fuz--ff-filter-candidate-one-by-one-advice! (orig-fun file)
-  "Advice for `helm-ff-filter-candidate-one-by-one'.
+  "Around advice where ORIG-FUN is `helm-ff-filter-candidate-one-by-one'.
 
 Sign: (-> (-> Str (Option Cand)) Str (Option Cand))"
   (let ((cand (funcall orig-fun file)))
@@ -253,7 +253,7 @@ Sign: (-> (-> Str (Option Cand)) Str (Option Cand))"
     cand))
 
 (defun helm-fuz-fuzzy-ff-sort-candidate-advice! (orig-fun cands source)
-  "Advice function of `helm-ff-sort-candidates'.
+  "Around advice where ORIG-FUN is `helm-ff-sort-candidates'.
 
 Sign: (-> (-> (Listof Cand) Any (Listof Cand)) (Listof Cand) Any (Listof Cand))"
   (cond ((string= (file-name-nondirectory helm-input) "")
