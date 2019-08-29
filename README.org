@@ -42,7 +42,11 @@ Add this snippet to your =.emacs.d= to make compilation automatically
     (require 'helm-fuz)
     (helm-fuz-mode))
 #+END_SRC
-*** Ivy 
+*** Ivy (Deprecated)
+
+    Notice that ivy support was deprecated since I no longer use Ivy, and it's
+    not a easy job to deal with the conflict between extra source and fuzzy sort
+    under Ivy's mechanism
 
     Add these config to your =.emacs.d=
 
