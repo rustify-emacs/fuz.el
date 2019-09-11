@@ -65,3 +65,8 @@ Add this snippet to your =.emacs.d= to make compilation automatically
 
 * Benchmark
 ** TODO Add a benchmark here
+* Support me
+
+如果你觉得这个插件可以帮到你, 欢迎使用爱发电支持我 :)
+
+https://afdian.net/@cireu
