@@ -70,3 +70,7 @@ Add this snippet to your =.emacs.d= to make compilation automatically
 如果你觉得这个插件可以帮到你, 欢迎使用爱发电支持我 :)
 
 https://afdian.net/@cireu
+
+If you like fuz, you can buy a cup of coffee for me :)
+
+https://www.patreon.com/user?u=24945220
