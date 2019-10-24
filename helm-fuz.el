@@ -107,12 +107,13 @@ Sign: (->* (Cand) (Bool Bool) Str)
 If USE-REAL? and PATTERN is a cons, use the `cdr' of PATTERN,
 otherwise use `car'.
 If BASENAME?, use `helm-basename' to transfrom PATTERN."
-  (let* ((visitor (if use-real? #'cdr #'car)))
-    (cond ((and basename? (consp cand))
-           (helm-basename (funcall visitor cand)))
-          ((consp cand) (funcall visitor cand))
-          (basename? (helm-basename cand))
-          (t cand))))
+  (let ((str (pcase cand
+               (`(,disp . ,real)
+                 (if use-real? real disp))
+               (s s))))
+    (if basename?
+        (helm-basename str)
+      str)))
 
 (defun helm-fuz--get-single-cand-score-data (pattern cand
                                              &optional
