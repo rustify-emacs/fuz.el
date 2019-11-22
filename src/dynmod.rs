@@ -8,20 +8,20 @@ use fuzzy_matcher::skim::{
     fuzzy_match as fuzzy_match_skim
 };
 
-fn calc_fuzz_score_skim(pat: &str, src: &str) -> Option<i64> {
-    fuzzy_match_skim(src, pat)
+fn calc_fuzz_score_skim(pat: &str, source: &str) -> Option<i64> {
+    fuzzy_match_skim(source, pat)
 }
 
-fn calc_fuzz_score_clangd(pat: &str, src: &str) -> Option<i64> {
-    fuzzy_match_clangd(src, pat)
+fn calc_fuzz_score_clangd(pat: &str, source: &str) -> Option<i64> {
+    fuzzy_match_clangd(source, pat)
 }
 
-fn find_indices_into_lisp<'a, F>(env: &'a Env, fun: F, pat: &str, src: &str)
+fn find_indices_into_lisp<'a, F>(env: &'a Env, fun: F, pat: &str, source: &str)
                         -> Option<Vec<Value<'a>>>
 where
     F: Fn(&str, &str) -> Option<(i64, Vec<usize>)>,
 {
-    if let Some((_score, indices)) = fun(&src, &pat) {
+    if let Some((_score, indices)) = fun(&source, &pat) {
         let indices: Vec<Value<'a>> = indices
             .into_iter()
             .map(|it| {
@@ -46,9 +46,9 @@ where
 ///
 /// (fn PATTERN SOURCE)
 #[defun]
-fn calc_score_skim(_env: &Env, pat: String, src: String)
+fn calc_score_skim(_env: &Env, pattern: String, source: String)
                    -> Result<Option<i64>> {
-    Ok(calc_fuzz_score_skim(&pat, &src))
+    Ok(calc_fuzz_score_skim(&pattern, &source))
 }
 
 /// Return the PATTERN fuzzy score abount SOURCE, using clangd's fuzzy algorithm.
@@ -59,9 +59,9 @@ fn calc_score_skim(_env: &Env, pat: String, src: String)
 ///
 /// (fn PATTERN SOURCE)
 #[defun]
-fn calc_score_clangd(_env: &Env, pat: String, src: String)
+fn calc_score_clangd(_env: &Env, pattern: String, source: String)
                      -> Result<Option<i64>> {
-    Ok(calc_fuzz_score_clangd(&pat, &src))
+    Ok(calc_fuzz_score_clangd(&pattern, &source))
 }
 
 /// Find the indices for a PATTERN matching SOURCE, using skim's fuzzy algorithm.
@@ -74,12 +74,12 @@ fn calc_score_clangd(_env: &Env, pat: String, src: String)
 ///
 /// (fn PATTERN SOURCE)
 #[defun]
-fn find_indices_skim(env: &Env, pat: String, src: String)
+fn find_indices_skim(env: &Env, pattern: String, source: String)
                       -> Result<Option<Value<'_>>> {
     if let Some(val) = find_indices_into_lisp(env,
                                               fuzzy_indices_skim,
-                                              &pat,
-                                              &src,) {
+                                              &pattern,
+                                              &source,) {
         return Ok(Some(env.list(&val[..])?))
     } else {
         return Ok(None)
@@ -95,12 +95,12 @@ fn find_indices_skim(env: &Env, pat: String, src: String)
 ///
 /// (fn PATTERN SOURCE)
 #[defun]
-fn find_indices_clangd(env: &Env, pat: String, src: String)
+fn find_indices_clangd(env: &Env, pattern: String, source: String)
                         -> Result<Option<Value<'_>>> {
     if let Some(val) = find_indices_into_lisp(env,
                                               fuzzy_indices_clangd,
-                                              &pat,
-                                              &src,) {
+                                              &pattern,
+                                              &source,) {
         return Ok(Some(env.list(&val[..])?))
     } else {
         return Ok(None)
