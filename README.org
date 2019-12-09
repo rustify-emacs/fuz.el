@@ -42,23 +42,9 @@ Add this snippet to your =.emacs.d= to make compilation automatically
     (require 'helm-fuz)
     (helm-fuz-mode))
 #+END_SRC
-*** Ivy (Deprecated)
+*** Ivy
 
-    Notice that ivy support was deprecated since I no longer use Ivy, and it's
-    not a easy job to deal with the conflict between extra source and fuzzy sort
-    under Ivy's mechanism
-
-    Add these config to your =.emacs.d=
-
-    #+BEGIN_SRC emacs-lisp :results none
-      (setq ivy-sort-matches-functions-alist '((t . ivy-fuz-sort-fn)))
-      (setq ivy-re-builders-alist '((t . ivy-fuz-regex-fuzzy)))
-
-      (with-eval-after-load 'ivy
-        (require 'ivy-fuz)
-        (add-to-list 'ivy-highlight-functions-alist '(ivy-fuz-regex-fuzzy . ivy-fuz-highlight-fn)))
-    #+END_SRC
-
+    Please see [[https://github.com/Silex/fuz.el][Silex's fork]].
 *** Company (WIP)
 ** Using fuz's score/match function in your Elisp
 *** TODO Add documentation here
