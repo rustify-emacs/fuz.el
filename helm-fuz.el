@@ -224,7 +224,7 @@ See also `helm-flex-completion-all-completions'."
          (mapcar
           (lambda (cand)
             (pcase-let ((`[,_ ,scr] (helm-fuz--get-single-cand-score-data
-                                     string cand)))
+                                     string cand t)))
               (propertize cand 'completion-score scr)))
           all)
          (length prefix))))))
@@ -307,8 +307,9 @@ Sign: (-> (-> (Listof Cand) Any (Listof Cand)) (Listof Cand) Any (Listof Cand))"
       (progn
         (setq helm-fuz-old-fuzzy-sort-fn helm-fuzzy-sort-fn
               helm-fuzzy-sort-fn #'helm-fuz-fuzzy-matching-sort-fn!)
-        (setq helm-fuz-old-fuzzy-highlight-match-fn helm-fuzzy-matching-highlight-fn
-              helm-fuzzy-matching-highlight-fn #'helm-fuz-fuzzy-highlight-match!)
+        ;; FIXME: Deal with invalid UTF-8 string.
+        ;; (setq helm-fuz-old-fuzzy-highlight-match-fn helm-fuzzy-matching-highlight-fn
+        ;;       helm-fuzzy-matching-highlight-fn #'helm-fuz-fuzzy-highlight-match!)
 
         (advice-add 'helm-ff-sort-candidates
                     :around
@@ -321,8 +322,8 @@ Sign: (-> (-> (Listof Cand) Any (Listof Cand)) (Listof Cand) Any (Listof Cand))"
     (progn
       (setq helm-fuzzy-sort-fn (or helm-fuz-old-fuzzy-sort-fn
                                    #'helm-fuzzy-matching-default-sort-fn))
-      (setq helm-fuzzy-matching-highlight-fn (or helm-fuz-old-fuzzy-highlight-match-fn
-                                                 #'helm-fuzzy-default-highlight-match))
+      ;; (setq helm-fuzzy-matching-highlight-fn (or helm-fuz-old-fuzzy-highlight-match-fn
+      ;;                                            #'helm-fuzzy-default-highlight-match))
       (advice-remove 'helm-ff-sort-candidates
                      #'helm-fuz-fuzzy-ff-sort-candidate-advice!)
       (advice-remove 'helm-ff-filter-candidate-one-by-one
