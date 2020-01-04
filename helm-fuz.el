@@ -128,7 +128,7 @@ USE-REAL? and BASENAME? will be passed to `helm-fuz--get-cand-str' to get the
 real candidate string."
   (let* ((realstr (helm-fuz--get-cand-str cand use-real? basename?))
          (len (length realstr)))
-    ;; FIXME: Short pattern may have higher score matching longer pattern
+    ;; NOTE: Short pattern may have higher score matching longer pattern
     ;; than exactly matching itself
     ;; e.g. "ielm" will prefer [iel]m-[m]enu than [ielm]
     (if (string= realstr pattern)
