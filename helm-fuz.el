@@ -67,7 +67,6 @@ slower but return better result than clangd's."
 
 (defvar helm-fuz-old-fuzzy-sort-fn nil)
 (defvar helm-fuz-old-fuzzy-highlight-match-fn nil)
-(defvar helm-fuz-old-M-x-fuzzy-sort-fn nil)
 
 ;;; Utils
 
@@ -179,21 +178,9 @@ Sign: (-> (Listof Cand) Any (Listof Cand))"
 
 Sign: (-> (Listof Cand) Any (Listof Cand))"
   (helm-fuz-fuzzy-matching-sort-fn-1! helm-pattern
-                                     cands
-                                     #'helm-fuz--get-single-cand-score-data
-                                     t))
-
-
-
-(defun helm-fuz-M-x-fuzzy-sort-fn! (cands _source)
-  "Sorting function for `helm-M-x'.
-
-Sign: (-> (Listof Cand) Any (Listof Cand))"
-  (helm-fuz-fuzzy-matching-sort-fn-1! helm-pattern
-                                     cands
-                                     (lambda (pat cand)
-                                       (helm-fuz--get-single-cand-score-data pat cand t))
-                                     t))
+                                      cands
+                                      #'helm-fuz--get-single-cand-score-data
+                                      t))
 
 (defun helm-fuz-fuzzy-highlight-match! (cand)
   "Highlight the fuzzy matched part of CAND.
@@ -266,7 +253,6 @@ Sign: (-> (-> (Listof Cand) Any (Listof Cand)) (Listof Cand) Any (Listof Cand))"
                                              cands
                                              #'helm-fuz--get-ff-cand-score-data))))
 
-
 ;;; Minor Mode
 
 ;;;###autoload
@@ -282,8 +268,6 @@ Sign: (-> (-> (Listof Cand) Any (Listof Cand)) (Listof Cand) Any (Listof Cand))"
               helm-fuzzy-sort-fn #'helm-fuz-fuzzy-matching-sort-fn!)
         (setq helm-fuz-old-fuzzy-highlight-match-fn helm-fuzzy-matching-highlight-fn
               helm-fuzzy-matching-highlight-fn #'helm-fuz-fuzzy-highlight-match!)
-        (setq helm-fuz-old-M-x-fuzzy-sort-fn helm-M-x-default-sort-fn
-              helm-M-x-default-sort-fn #'helm-fuz-M-x-fuzzy-sort-fn!)
 
         (advice-add 'helm-ff-sort-candidates
                     :around
@@ -296,9 +280,6 @@ Sign: (-> (-> (Listof Cand) Any (Listof Cand)) (Listof Cand) Any (Listof Cand))"
                                    #'helm-fuzzy-matching-default-sort-fn))
       (setq helm-fuzzy-matching-highlight-fn (or helm-fuz-old-fuzzy-highlight-match-fn
                                                  #'helm-fuzzy-default-highlight-match))
-      (setq helm-M-x-default-sort-fn (or helm-fuz-old-M-x-fuzzy-sort-fn
-                                         #'helm-M-x-fuzzy-sort-candidates))
-
       (advice-remove 'helm-ff-sort-candidates
                      #'helm-fuz-fuzzy-ff-sort-candidate-advice!)
       (advice-remove 'helm-ff-filter-candidate-one-by-one
