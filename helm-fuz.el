@@ -32,11 +32,14 @@
 
 ;;; Code:
 
+(require 'cl-lib)
 (require 'inline)
+(require 'minibuffer)
 (require 'fuz)
 (require 'fuz-extra)
 (require 'helm)
 (require 'helm-command)
+(require 'helm-mode)
 
 (eval-when-compile
   (require 'pcase)
@@ -199,6 +202,44 @@ Sign: (-> Cand Cand)"
         (_
          (funcall highlighter cand))))))
 
+;;; Completion Style
+
+(defalias 'helm-fuz-completion-try-completion
+  #'helm-flex-completion-try-completion
+  "`try-completion' function for `helm-fuz' completion style.
+
+See also `helm-flex-completion-try-completion'.")
+
+(defun helm-fuz-completion-all-completions (string table pred point)
+  "`all-completions' function for `helm-fuz' completion style.
+
+See also `helm-flex-completion-all-completions'."
+  (unless (string-match-p " " string)
+    (cl-multiple-value-bind (all _pattern prefix _suffix _carbounds)
+        (helm-completion--flex-all-completions
+         string table pred point
+         #'helm-completion--flex-transform-pattern)
+      (when all
+        (nconc
+         (mapcar
+          (lambda (cand)
+            (pcase-let ((`[,_ ,scr] (helm-fuz--get-single-cand-score-data
+                                     string cand)))
+              (propertize cand 'completion-score scr)))
+          all)
+         (length prefix))))))
+
+;; Setup `completion-styles-alist'
+(cl-pushnew '(helm-fuz
+              helm-fuz-completion-try-completion
+              helm-fuz-completion-all-completions
+              "\
+Helm flex completion style.
+
+Use `fuz' to calcuate the fuzzy score for better result.")
+            completion-styles-alist
+            :test #'equal)
+
 ;;; Find Files Fuzzy
 
 (defun helm-fuz--get-ff-cand-score-data (pattern cand)
@@ -274,7 +315,9 @@ Sign: (-> (-> (Listof Cand) Any (Listof Cand)) (Listof Cand) Any (Listof Cand))"
                     #'helm-fuz-fuzzy-ff-sort-candidate-advice!)
         (advice-add 'helm-ff-filter-candidate-one-by-one
                     :around
-                    #'helm-fuz--ff-filter-candidate-one-by-one-advice!))
+                    #'helm-fuz--ff-filter-candidate-one-by-one-advice!)
+
+        (add-to-list 'completion-styles 'helm-fuz t #'eq))
     (progn
       (setq helm-fuzzy-sort-fn (or helm-fuz-old-fuzzy-sort-fn
                                    #'helm-fuzzy-matching-default-sort-fn))
@@ -283,7 +326,9 @@ Sign: (-> (-> (Listof Cand) Any (Listof Cand)) (Listof Cand) Any (Listof Cand))"
       (advice-remove 'helm-ff-sort-candidates
                      #'helm-fuz-fuzzy-ff-sort-candidate-advice!)
       (advice-remove 'helm-ff-filter-candidate-one-by-one
-                     #'helm-fuz--ff-filter-candidate-one-by-one-advice!))))
+                     #'helm-fuz--ff-filter-candidate-one-by-one-advice!)
+
+      (cl-callf2 delq 'helm-fuz completion-styles))))
 
 (provide 'helm-fuz)
 
