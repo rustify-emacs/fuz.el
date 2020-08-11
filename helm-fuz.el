@@ -258,11 +258,11 @@ This function is for `helm-find-files' like helm functions."
     (_
      (helm-fuz--get-single-cand-score-data (helm-basename pattern) cand t t))))
 
-(defun helm-fuz--ff-filter-candidate-one-by-one-advice! (orig-fun file)
+(defun helm-fuz--ff-filter-candidate-one-by-one-advice! (orig-fun file &rest options)
   "Around advice where ORIG-FUN is `helm-ff-filter-candidate-one-by-one'.
 
 Sign: (-> (-> Str (Option Cand)) Str (Option Cand))"
-  (let ((cand (funcall orig-fun file)))
+  (let ((cand (apply orig-fun file options)))
     (pcase cand
       ((and `(,disp . ,_)
             (guard (and (not (string-match-p (rx "/" eol) helm-input))
